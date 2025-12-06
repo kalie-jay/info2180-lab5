@@ -1,6 +1,4 @@
 <?php
-header('Content-Type: application/json'); // Tell browser we're returning JSON
-
 $host = 'localhost';
 $username = 'lab5_user';
 $password = 'password123';
@@ -10,15 +8,15 @@ try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
+    echo "<p>Database connection failed: " . $e->getMessage() . "</p>";
     exit();
 }
 
-// Check if GET variable 'country' exists
+// Get the 'country' GET variable if it exists
 $country = isset($_GET['country']) ? trim($_GET['country']) : '';
 
 if ($country !== '') {
-    // Use prepared statement to prevent SQL injection
+    // Prepared statement to prevent SQL injection
     $stmt = $conn->prepare("SELECT * FROM countries WHERE name LIKE :country");
     $stmt->execute(['country' => "%$country%"]);
 } else {
@@ -28,6 +26,31 @@ if ($country !== '') {
 
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Return JSON instead of HTML
-echo json_encode($results);
+// Start the HTML table
+echo '<table border="1" cellpadding="5" cellspacing="0">';
+echo '<thead>';
+echo '<tr>';
+echo '<th>Country Name</th>';
+echo '<th>Continent</th>';
+echo '<th>Independence Year</th>';
+echo '<th>Head of State</th>';
+echo '</tr>';
+echo '</thead>';
+echo '<tbody>';
+
+if (count($results) > 0) {
+    foreach ($results as $row) {
+        echo '<tr>';
+        echo '<td>' . htmlspecialchars($row['name']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['continent']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['independence_year']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['head_of_state']) . '</td>';
+        echo '</tr>';
+    }
+} else {
+    echo '<tr><td colspan="4">No results found.</td></tr>';
+}
+
+echo '</tbody>';
+echo '</table>';
 ?>
